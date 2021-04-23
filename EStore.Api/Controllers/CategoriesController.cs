@@ -24,12 +24,27 @@ namespace EStore.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Category[]>> Get()
+        public async Task<ActionResult<Category[]>> Get(bool includeSubCategories = false)
         {
             try
             {
-                var results = await categoryRepository.AllAsync();
+                var results = await categoryRepository.AllAsync(includeSubCategories);
                 return mapper.Map<Category[]>(results);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpGet("{name}")]
+        public async Task<ActionResult<Category>> Get(String name, bool includeSubCategories = false)
+        {
+            try
+            {
+                var results = await categoryRepository.GetByNameAsync(name, includeSubCategories);
+                if (results == null) return NotFound();
+                return mapper.Map<Category>(results);
             }
             catch (Exception)
             {

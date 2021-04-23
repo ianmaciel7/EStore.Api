@@ -37,7 +37,7 @@ namespace EStore.API.Controllers
             {
 
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
-            }           
+            }
         }
 
         [HttpGet("{name}")]
@@ -46,6 +46,9 @@ namespace EStore.API.Controllers
             try
             {
                 var results = await productRepository.GetByNameAsync(name);
+
+                if (results == null) return NotFound();
+
                 return mapper.Map<ProductModel>(results);
             }
             catch (Exception)
