@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EStore.API.Data;
 using EStore.API.Data.Entities;
+using EStore.API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -24,32 +25,17 @@ namespace EStore.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<Category[]>> Get(bool includeSubCategories = false)
+        public async Task<ActionResult<CategoryModel[]>> Get(bool includeSubCategories = false)
         {
             try
             {
                 var results = await categoryRepository.AllAsync(includeSubCategories);
-                return mapper.Map<Category[]>(results);
+                return mapper.Map<CategoryModel[]>(results);
             }
             catch (Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
-        }
-
-        [HttpGet("{name}")]
-        public async Task<ActionResult<Category>> Get(String name, bool includeSubCategories = false)
-        {
-            try
-            {
-                var results = await categoryRepository.GetByNameAsync(name, includeSubCategories);
-                if (results == null) return NotFound();
-                return mapper.Map<Category>(results);
-            }
-            catch (Exception)
-            {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
-            }
-        }
+        }               
     }
 }
