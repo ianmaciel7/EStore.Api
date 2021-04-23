@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using EStore.API.Data.Entities;
-using EStore.API.Data.Models;
+using EStore.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

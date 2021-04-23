@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EStore.API.Data.Models
+namespace EStore.API.Models
 {
     public class SubCategoryModel
     {
