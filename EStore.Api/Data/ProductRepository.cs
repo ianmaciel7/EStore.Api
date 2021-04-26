@@ -14,6 +14,11 @@ namespace EStore.API.Data
             this.appDbContext = appDbContext;
         }
 
+        public void Add(Product product)
+        {
+            appDbContext.Products.Add(product);
+        }
+
         public async Task<IEnumerable<Product>> AllAsync()
         {
             IQueryable<Product> query = appDbContext.Products
@@ -41,5 +46,9 @@ namespace EStore.API.Data
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<bool> SaveChangesAsync()
+        {
+            return await (appDbContext.SaveChangesAsync()) > 0;
+        }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using EStore.API.Data;
 using AutoMapper;
 using EStore.API.Models;
+using Microsoft.AspNetCore.Routing;
 
 namespace EStore.API.Controllers
 {
@@ -18,11 +19,15 @@ namespace EStore.API.Controllers
 
         private readonly IProductRepository productRepository;
         private readonly IMapper mapper;
+        private readonly LinkGenerator linkGenerator;
 
-        public ProductsController(IProductRepository productRepository, IMapper mapper)
+        public ProductsController(
+            IProductRepository productRepository, 
+            IMapper mapper,LinkGenerator linkGenerator)
         {
             this.productRepository = productRepository;
             this.mapper = mapper;
+            this.linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -55,6 +60,42 @@ namespace EStore.API.Controllers
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
+        }
+
+        [HttpPost()]
+        public async Task<ActionResult<ProductModel>> Post(ProductModel model)
+        {
+            try
+            {
+                var existing = await productRepository.GetByNameAsync(model.Name);
+                if (existing != null)
+                {
+                    return BadRequest("There is already a product with this name");
+                }
+
+                var location = linkGenerator.GetPathByAction("Get",
+                    "Products",
+                    new { name = model.Name }
+                    );
+
+                if (string.IsNullOrWhiteSpace(location))
+                {
+                    return BadRequest("Could not use curret product");
+                }
+
+                var product = mapper.Map<Product>(model);
+                productRepository.Add(product);
+                if (await productRepository.SaveChangesAsync())
+                {
+                    return Created($"/api/products/{product.Name}", mapper.Map<ProductModel>(product));
+                }             
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
         }
     }
 }

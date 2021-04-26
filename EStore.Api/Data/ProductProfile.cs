@@ -8,7 +8,8 @@ namespace EStore.API.Data
         public ProductProfile()
         {
             this.CreateMap<Product, ProductModel>()
-                .ForMember(dest => dest.CategoryName, source => source.MapFrom(source => source.SubCategory.Category.Name));
+                .ForMember(dest => dest.CategoryName, source => source.MapFrom(source => source.SubCategory.Category.Name))
+                .ReverseMap();
         }
     }
 }
