@@ -10,6 +10,7 @@ namespace EStore.API.Data
         Task<IEnumerable<Product>> AllAsync();
         Task<Product> GetByNameAsync(string name);
         void Add(Product product);
+        void Delete(Product product);
         Task<bool> SaveChangesAsync();
 
     }

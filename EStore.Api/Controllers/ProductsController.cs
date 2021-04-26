@@ -121,6 +121,29 @@ namespace EStore.API.Controllers
             return BadRequest();
         }
 
-        
+        [HttpDelete("{name}")]
+        public async Task<IActionResult> Delete(string name)
+        {
+            try
+            {
+                var oldProduct = await productRepository.GetByNameAsync(name);
+                if (oldProduct == null)
+                    return NotFound($"Could not find product with this name '{name}'");
+                productRepository.Delete(oldProduct);
+
+                if (await productRepository.SaveChangesAsync())
+                {
+                    return Ok();
+                }
+
+            }
+            catch (Exception)
+            {
+
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
+        }
     }
 }

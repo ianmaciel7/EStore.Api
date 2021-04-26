@@ -31,6 +31,11 @@ namespace EStore.API.Data
             return await query.ToListAsync();
         }
 
+        public void Delete(Product product)
+        {
+           appDbContext.Products.Remove(product);
+        }
+
         public async Task<Product> GetByNameAsync(string name)
         {
             IQueryable<Product> query = appDbContext.Products
