@@ -97,5 +97,30 @@ namespace EStore.API.Controllers
 
             return BadRequest();
         }
+
+        [HttpPut("{name}")]
+        public async Task<ActionResult<ProductModel>> Put(string name, ProductModel model)
+        {
+            try
+            {
+                var oldProduct = await productRepository.GetByNameAsync(name);
+                if (oldProduct == null) 
+                    return NotFound($"Could not find product with this name '{name}'");
+                mapper.Map(model, oldProduct);
+
+                if (await productRepository.SaveChangesAsync())
+                {
+                    return mapper.Map<ProductModel>(oldProduct);                
+                }
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+
+            return BadRequest();
+        }
+
+        
     }
 }

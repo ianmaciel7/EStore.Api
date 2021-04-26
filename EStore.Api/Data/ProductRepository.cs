@@ -34,12 +34,7 @@ namespace EStore.API.Data
         public async Task<Product> GetByNameAsync(string name)
         {
             IQueryable<Product> query = appDbContext.Products
-           .Include(c => c.SubCategory);
-
-
-            query = query.Include(c => c.SubCategory)
-                  .ThenInclude(t => t.Category);
-
+           .Include(c => c.SubCategory).ThenInclude(t => t.Category); 
 
             query = query.Where(c => c.Name == name);
 
