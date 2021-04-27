@@ -15,13 +15,13 @@ namespace EStore.API.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository categoryRepository;
-        private readonly IMapper mapper;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
         public CategoriesController(ICategoryRepository categoryRepository,IMapper mapper)
         {
-            this.categoryRepository = categoryRepository;
-            this.mapper = mapper;
+            this._categoryRepository = categoryRepository;
+            this._mapper = mapper;
         }
 
         [HttpGet]
@@ -29,13 +29,13 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await categoryRepository.AllAsync(includeSubCategories);
-                return mapper.Map<CategoryModel[]>(results);
+                var results = await _categoryRepository.AllAsync(includeSubCategories);
+                return _mapper.Map<CategoryModel[]>(results);
             }
             catch (Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
-        }               
+        }
     }
 }
