@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace EStore.API.Controllers
 {
+    [ApiVersion("1.1")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase

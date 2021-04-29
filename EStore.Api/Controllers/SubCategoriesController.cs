@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace EStore.API.Controllers
 {
+    [ApiVersion("1.1")]
     [Route("api/categories/{name}/subCategories")]
     [ApiController]
     public class SubCategoriesController : ControllerBase
@@ -32,12 +33,17 @@ namespace EStore.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<SubCategoryModel[]>> Get(string name)
+        public async Task<ActionResult> Get(string name)
         {
             try
             {
-                var sub = await _categoryRepository.GetSubCategoriesByNameCategory(name);
-                return _mapper.Map<SubCategoryModel[]>(sub);
+                var results = await _categoryRepository.GetSubCategoriesByNameCategory(name);
+                var result = new {
+                    Count = results.Count(),
+                    Results = _mapper.Map<SubCategoryModel[]>(results)
+                };
+
+                return Ok(result);
             }
             catch (Exception)
             {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace EStore.API.Controllers
 {
+    [ApiVersion("1.1")]
     [Route("api/[controller]")]
     [ApiController]
     public class OperationsController : ControllerBase
