@@ -31,12 +31,17 @@ namespace EStore.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ProductModel[]>> Get()
+        public async Task<ActionResult> Get()
         {
             try
             {
                 var results = await _productRepository.AllProductsAsync();
-                return _mapper.Map<ProductModel[]>(results);
+                var result = new
+                {
+                    Count = results.Count(),
+                    Result = _mapper.Map<ProductModel[]>(results)
+                };
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -67,10 +72,7 @@ namespace EStore.API.Controllers
             try
             {
                 var existing = await _productRepository.GetProductByNameAsync(model.Name);
-                if (existing != null)
-                {
-                    return BadRequest("There is already a product with this name");
-                }
+                if (existing != null) return BadRequest("There is already a product with this name");
 
                 var location = _linkGenerator.GetPathByAction("Get",
                     "Products",
@@ -102,7 +104,11 @@ namespace EStore.API.Controllers
         {
             try
             {
+                var existing = await _productRepository.GetProductByNameAsync(model.Name);
+                if (existing != null) return BadRequest("There is already a product with this name");
+
                 var oldProduct = await _productRepository.GetProductByNameAsync(name);
+
                 if (oldProduct == null)
                     return NotFound($"Could not find product with this name '{name}'");
                 _mapper.Map(model, oldProduct);

@@ -103,5 +103,10 @@ namespace EStore.API.Data
         {
             _appDbContext.Categories.Remove(category);
         }
+
+        public void AddCategory(Category category)
+        {
+            _appDbContext.Categories.AddAsync(category);
+        }
     }
 }

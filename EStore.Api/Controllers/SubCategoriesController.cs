@@ -68,14 +68,17 @@ namespace EStore.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<SubCategoryModel>> Post(string name, SubCategoryModel subCategoryModel)
+        public async Task<ActionResult<SubCategoryModel>> Post(string name, SubCategoryModel model)
         {
             try
             {
+                var existing = await _categoryRepository.GetSubCategoryByNameSubCategory(name, model.Name);
+                if (existing != null) BadRequest("There is already a subcategory with this name");
+
                 var category = await _categoryRepository.GetCategoryByNameAsync(name);
                 if (category == null) BadRequest("Category does not exist");
 
-                var subcategory = _mapper.Map<SubCategory>(subCategoryModel);
+                var subcategory = _mapper.Map<SubCategory>(model);
                 subcategory.Category = category;
                 _categoryRepository.AddSubCategory(subcategory);
 
@@ -90,7 +93,7 @@ namespace EStore.API.Controllers
                 }
                 else
                 {
-                    return BadRequest("Failed to save new Sub Category");
+                    return BadRequest("Failed to save new subcategory");
                 }
             }
             catch (Exception)
@@ -101,10 +104,14 @@ namespace EStore.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<SubCategoryModel>> Put(string name, int id,SubCategoryModel subCategoryModel)
+        public async Task<ActionResult<SubCategoryModel>> Put(string name, int id,SubCategoryModel model)
         {
             try
             {
+
+                var existing = await _categoryRepository.GetSubCategoryByNameSubCategory(name, model.Name);
+                if (existing != null) BadRequest("There is already a subcategory with this name");
+
                 var sub = await _categoryRepository.GetSubCategoryByIdSubCategory(name, id);
                 if (sub == null) return NotFound("Couldn't find the subcategory");
 
@@ -115,7 +122,7 @@ namespace EStore.API.Controllers
                     sub.Category = category;
                 }
 
-                _mapper.Map(subCategoryModel, sub);
+                _mapper.Map(model, sub);
 
                 if (await _categoryRepository.SaveChangesAsync())
                 {
@@ -147,7 +154,7 @@ namespace EStore.API.Controllers
                 }
                 else
                 {
-                    return BadRequest("Failed to delete talk");
+                    return BadRequest("Failed to delete sub category");
                 }
 
             }

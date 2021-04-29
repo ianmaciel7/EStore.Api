@@ -11,6 +11,7 @@ namespace EStore.API.Data
         Task<IEnumerable<SubCategory>> GetSubCategoriesByNameCategory(string name);
         Task<SubCategory> GetSubCategoryByIdSubCategory(string name, int id);
         Task<SubCategory> GetSubCategoryByNameSubCategory(string name,string nameSubCategory);
+        void AddCategory(Category category);
         void AddSubCategory(SubCategory subCategory);
         Task<bool> SaveChangesAsync();
         Task<Category> GetCategoryByIdAsync(int categoryId);
