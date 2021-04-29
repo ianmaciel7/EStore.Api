@@ -34,7 +34,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _productRepository.AllAsync();
+                var results = await _productRepository.AllProductsAsync();
                 return _mapper.Map<ProductModel[]>(results);
             }
             catch (Exception)
@@ -48,7 +48,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _productRepository.GetByNameAsync(name);
+                var results = await _productRepository.GetProductByNameAsync(name);
 
                 if (results == null) return NotFound();
 
@@ -65,7 +65,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var existing = await _productRepository.GetByNameAsync(model.Name);
+                var existing = await _productRepository.GetProductByNameAsync(model.Name);
                 if (existing != null)
                 {
                     return BadRequest("There is already a product with this name");
@@ -82,7 +82,7 @@ namespace EStore.API.Controllers
                 }
 
                 var product = _mapper.Map<Product>(model);
-                _productRepository.Add(product);
+                _productRepository.AddProducts(product);
                 if (await _productRepository.SaveChangesAsync())
                 {
                     return Created($"/api/products/{product.Name}", _mapper.Map<ProductModel>(product));
@@ -101,7 +101,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var oldProduct = await _productRepository.GetByNameAsync(name);
+                var oldProduct = await _productRepository.GetProductByNameAsync(name);
                 if (oldProduct == null)
                     return NotFound($"Could not find product with this name '{name}'");
                 _mapper.Map(model, oldProduct);
@@ -124,10 +124,10 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var oldProduct = await _productRepository.GetByNameAsync(name);
+                var oldProduct = await _productRepository.GetProductByNameAsync(name);
                 if (oldProduct == null)
                     return NotFound($"Could not find product with this name '{name}'");
-                _productRepository.Delete(oldProduct);
+                _productRepository.DeleteProduct(oldProduct);
 
                 if (await _productRepository.SaveChangesAsync())
                 {

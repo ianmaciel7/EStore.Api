@@ -45,7 +45,7 @@ namespace EStore.API
             services.AddDbContext<AppDbContext>(
                 options => options.UseSqlServer("name=ConnectionStrings:DefaultConnection"));
 
-            
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

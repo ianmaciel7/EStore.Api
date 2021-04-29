@@ -7,10 +7,10 @@ namespace EStore.API.Data
 {
     public interface IProductRepository
     {
-        Task<IEnumerable<Product>> AllAsync();
-        Task<Product> GetByNameAsync(string name);
-        void Add(Product product);
-        void Delete(Product product);
+        Task<IEnumerable<Product>> AllProductsAsync();
+        Task<Product> GetProductByNameAsync(string name);
+        void AddProducts(Product product);
+        void DeleteProduct(Product product);
         Task<bool> SaveChangesAsync();
 
     }

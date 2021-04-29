@@ -12,7 +12,13 @@ namespace EStore.API.Data
     {
         public CategoryProfile()
         {
-            this.CreateMap<Category, CategoryModel>();               
+            this.CreateMap<Category, CategoryModel>()
+                .ReverseMap();
+
+            this.CreateMap<SubCategory, SubCategoryModel>()
+                .ReverseMap()
+                .ForMember(s => s.Category, opt => opt.Ignore());
+
         }
     }
 }

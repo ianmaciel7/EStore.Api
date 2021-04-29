@@ -6,7 +6,15 @@ namespace EStore.API.Data
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<Category>> AllAsync(bool includeSubCategories = false);
-        Task<Category> GetByNameAsync(string name, bool includeSubCategories = false);
+        Task<IEnumerable<Category>> AllCategoriesAsync(bool includeSubCategories = false);
+        Task<Category> GetCategoryByNameAsync(string name, bool includeSubCategories = false);
+        Task<IEnumerable<SubCategory>> GetSubCategoriesByNameCategory(string name);
+        Task<SubCategory> GetSubCategoryByIdSubCategory(string name, int id);
+        Task<SubCategory> GetSubCategoryByNameSubCategory(string name,string nameSubCategory);
+        void AddSubCategory(SubCategory subCategory);
+        Task<bool> SaveChangesAsync();
+        Task<Category> GetCategoryByIdAsync(int categoryId);
+        void DeleteSubCategory(SubCategory subCategory);
+        void DeleteCategory(Category category);
     }
 }

@@ -29,7 +29,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _categoryRepository.AllAsync(includeSubCategories);
+                var results = await _categoryRepository.AllCategoriesAsync(includeSubCategories);
                 return _mapper.Map<CategoryModel[]>(results);
             }
             catch (Exception)

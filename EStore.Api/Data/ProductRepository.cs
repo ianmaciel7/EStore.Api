@@ -7,39 +7,39 @@ namespace EStore.API.Data
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly AppDbContext appDbContext;
+        private readonly AppDbContext _appDbContext;
 
         public ProductRepository(AppDbContext appDbContext)
         {
-            this.appDbContext = appDbContext;
+            this._appDbContext = appDbContext;
         }
 
-        public void Add(Product product)
+        public void AddProducts(Product product)
         {
-            appDbContext.Products.Add(product);
+            _appDbContext.Products.Add(product);
         }
 
-        public async Task<IEnumerable<Product>> AllAsync()
+        public async Task<IEnumerable<Product>> AllProductsAsync()
         {
-            IQueryable<Product> query = appDbContext.Products
+            IQueryable<Product> query = _appDbContext.Products
            .Include(c => c.SubCategory);
 
 
             query = query.Include(c => c.SubCategory)
                   .ThenInclude(t => t.Category);
-          
+
             return await query.ToListAsync();
         }
 
-        public void Delete(Product product)
+        public void DeleteProduct(Product product)
         {
-           appDbContext.Products.Remove(product);
+           _appDbContext.Products.Remove(product);
         }
 
-        public async Task<Product> GetByNameAsync(string name)
+        public async Task<Product> GetProductByNameAsync(string name)
         {
-            IQueryable<Product> query = appDbContext.Products
-           .Include(c => c.SubCategory).ThenInclude(t => t.Category); 
+            IQueryable<Product> query = _appDbContext.Products
+           .Include(c => c.SubCategory).ThenInclude(t => t.Category);
 
             query = query.Where(c => c.Name == name);
 
@@ -48,7 +48,7 @@ namespace EStore.API.Data
 
         public async Task<bool> SaveChangesAsync()
         {
-            return await (appDbContext.SaveChangesAsync()) > 0;
+            return await (_appDbContext.SaveChangesAsync()) > 0;
         }
     }
 }
