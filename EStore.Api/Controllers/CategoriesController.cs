@@ -2,6 +2,7 @@
 using EStore.API.Data;
 using EStore.API.Data.Entities;
 using EStore.API.Models;
+using EStore.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -18,14 +19,12 @@ namespace EStore.API.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
+        private readonly ICategoryService _categoryService;
         private readonly LinkGenerator _linkGenerator;
 
-        public CategoriesController(ICategoryRepository categoryRepository, IMapper mapper, LinkGenerator linkGenerator)
+        public CategoriesController(ICategoryService categoryService, LinkGenerator linkGenerator)
         {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
+            _categoryService = categoryService;
             _linkGenerator = linkGenerator;
         }
 
@@ -34,14 +33,8 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _categoryRepository.AllCategoriesAsync(includeSubCategories);
-                var result = new
-                {
-                    Count = results.Count(),
-                    Results = _mapper.Map<CategoryModel[]>(results)
-                };
-
-                return Ok(result);
+                var result = await _categoryService.AllCategoriesAsync(includeSubCategories);
+                return Ok(result);            
             }
             catch (Exception)
             {
@@ -54,50 +47,28 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var existing = await _categoryRepository.GetCategoryByNameAsync(model.Name);
-                if (existing != null) return BadRequest("There is already a product with this name");
 
-                var category = _mapper.Map<Category>(model);
+                if (await _categoryService.IsThereThisCategory(model.Name))
+                    return BadRequest($"There is already a category with this name '{model.Name}'");
 
-                _categoryRepository.AddCategory(category);
-
-                if (await _categoryRepository.SaveChangesAsync())
+                foreach (var s in model.SubCategories)
                 {
-                    var url = _linkGenerator.GetPathByAction(
+                    if (await _categoryService.IsThereThisSubCategory(s.Name))
+                        return BadRequest($"There is already a subcategory with this name '{s.Name}'");
+                }
+               
+                var url = _linkGenerator.GetPathByAction(
                         HttpContext,
                         "Get",
-                        values: new { name = category.Name });
+                        values: new { name = model.Name });
 
-                    return Created(url, _mapper.Map<CategoryModel>(category));
-                }
-                else
-                {
-                    return BadRequest("Failed to save new category");
-                }
-            }
-            catch (Exception)
-            {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
-            }
-        }
+                if (string.IsNullOrWhiteSpace(url))
+                    return BadRequest("Could not use curret category");
 
-        [HttpPut("{name}")]
-        public async Task<ActionResult<CategoryModel>> Put(string name,CategoryModel model)
-        {
-            try
-            {
-                var existing = await _categoryRepository.GetCategoryByNameAsync(model.Name);
-                if (existing != null) return BadRequest("There is already a product with this name");
+                var category = await _categoryService.AddCategory(model);
 
-                var oldCategory = await _categoryRepository.GetCategoryByNameAsync(name);
-                if (oldCategory == null)
-                    return NotFound($"Could not find category with this name '{name}'");
-                _mapper.Map(model, oldCategory);
-
-                if (await _categoryRepository.SaveChangesAsync())
-                {
-                    return _mapper.Map<CategoryModel>(oldCategory);
-                }
+                if (category != null)
+                    return Created($"/api/categories/{category.Name}", model);
             }
             catch (Exception)
             {
@@ -107,23 +78,45 @@ namespace EStore.API.Controllers
             return BadRequest();
         }
 
+        [HttpPut("{name}")]
+        public async Task<ActionResult<CategoryModel>> Put(string name,CategoryModel model)
+        {
+            try
+            {
+                if (await _categoryService.IsThereThisCategory(model.Name))
+                    return BadRequest($"There is already a category with this name '{model.Name}'");
+
+                foreach (var s in model.SubCategories)
+                {
+                    if (await _categoryService.IsThereThisSubCategory(s.Name))
+                        return BadRequest($"There is already a subcategory with this name '{s.Name}'");
+                }
+
+                if (!await _categoryService.IsThereThisCategory(name))
+                    return NotFound($"Could not find category with this name '{name}'");
+
+                return await _categoryService.UpdateCategory(name, model);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
         [HttpDelete("{name}")]
         public async Task<IActionResult> Delete(string name)
         {
             try
             {
-                var cat = await _categoryRepository.GetCategoryByNameAsync(name);
-                if (cat == null) return NotFound("Couldn't find the category");
-                _categoryRepository.DeleteCategory(cat);
+                var oldCategory = await _categoryService.GetCategoryEntityByNameAsync(name);
 
-                if (await _categoryRepository.SaveChangesAsync())
-                {
+                if (oldCategory == null)
+                    return NotFound($"Could not find category with this name '{name}'");
+
+                if (await _categoryService.DeleteCategory(oldCategory))
                     return Ok();
-                }
                 else
-                {
                     return BadRequest("Failed to delete category");
-                }
 
             }
             catch (DbUpdateException)

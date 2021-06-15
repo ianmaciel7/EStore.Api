@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using EStore.API.Models;
 
 namespace EStore.API.Data
 {
@@ -56,30 +57,13 @@ namespace EStore.API.Data
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<SubCategory>> GetSubCategoriesByNameCategory(string name)
-        {
-            IQueryable<SubCategory> query = _appDbContext.SubCategories;
-            query = query.Where(s => s.Category.Name == name);
-            return await query.ToListAsync();
-        }
-
-        public async Task<SubCategory> GetSubCategoryByIdSubCategory(string name, int id)
+        public async Task<SubCategory> GetSubCategoryByNameCategoryAndIdSubCategory(string name, int id)
         {
             IQueryable<SubCategory> query = _appDbContext.SubCategories.Include(s => s.Category);
             query = query.Where(s => s.Category.Name == name);
             query = query.Where(s => s.SubCategoryId == id);
             return await query.FirstOrDefaultAsync();
         }
-
-        public async Task<SubCategory> GetSubCategoryByNameSubCategory(string name, string nameSubCategory)
-        {
-            IQueryable<SubCategory> query = _appDbContext.SubCategories;
-            query = query.Where(s => s.Category.Name == name);
-            query = query.Where(s => s.Name == name);
-            return await query.FirstOrDefaultAsync();
-        }
-
-
 
         public async Task<bool> SaveChangesAsync()
         {
@@ -107,6 +91,26 @@ namespace EStore.API.Data
         public void AddCategory(Category category)
         {
             _appDbContext.Categories.AddAsync(category);
+        }
+
+        public async Task<SubCategory> GetSubCategoryByNameSubCategory(string name)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories.Include(s => s.Category).Where(s => s.Name == name);            
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<SubCategory> GetSubCategoryByIdSubCategory(int id)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories.Where(s => s.SubCategoryId == id);
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<SubCategory> GetSubCategoryByNameCategoryAndNameSubCategory(string nameCategory, string nameSub)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories.Include(s => s.Category);
+            query = query.Where(s => s.Category.Name == nameCategory);
+            query = query.Where(s => s.Name == nameSub);
+            return await query.FirstOrDefaultAsync();
         }
     }
 }

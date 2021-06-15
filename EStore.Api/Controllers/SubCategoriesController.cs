@@ -2,6 +2,7 @@
 using EStore.API.Data;
 using EStore.API.Data.Entities;
 using EStore.API.Models;
+using EStore.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -15,41 +16,19 @@ using System.Threading.Tasks;
 namespace EStore.API.Controllers
 {
     [ApiVersion("1.1")]
-    [Route("api/categories/{name}/subCategories")]
+    [Route("api/Categories/{name}/SubCategories")]
     [ApiController]
     public class SubCategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
+        private readonly ICategoryService _categoryService;
         private readonly LinkGenerator _linkGenerator;
 
         public SubCategoriesController(
-            ICategoryRepository categoryRepository,
-            IMapper mapper,LinkGenerator linkGenerator)
+            ICategoryService categoryService,
+            LinkGenerator linkGenerator)
         {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
+            _categoryService = categoryService;            
             _linkGenerator = linkGenerator;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult> Get(string name)
-        {
-            try
-            {
-                var results = await _categoryRepository.GetSubCategoriesByNameCategory(name);
-                var result = new {
-                    Count = results.Count(),
-                    Results = _mapper.Map<SubCategoryModel[]>(results)
-                };
-
-                return Ok(result);
-            }
-            catch (Exception)
-            {
-
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
-            }
         }
 
         [HttpGet("{id:int}")]
@@ -57,8 +36,13 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var sub = await _categoryRepository.GetSubCategoryByIdSubCategory(name,id);
-                return _mapper.Map<SubCategoryModel>(sub);
+                if (!await _categoryService.IsThereThisCategory(name))
+                    return BadRequest($"Could not find category with this name '{name}'");
+                
+                if (!await _categoryService.IsThereThisSubCategory(name,id))
+                    return BadRequest($"Could not find subcategory with this id '{id}' in category '{name}'");
+
+                return await _categoryService.GetSubCategoryByNameCategoryAndIdSubCategory(name, id);
             }
             catch (Exception)
             {
@@ -72,29 +56,24 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var existing = await _categoryRepository.GetSubCategoryByNameSubCategory(name, model.Name);
-                if (existing != null) BadRequest("There is already a subcategory with this name");
 
-                var category = await _categoryRepository.GetCategoryByNameAsync(name);
-                if (category == null) BadRequest("Category does not exist");
+                if (!await _categoryService.IsThereThisCategory(name))
+                    return BadRequest($"Could not find category with this name '{name}'");
 
-                var subcategory = _mapper.Map<SubCategory>(model);
-                subcategory.Category = category;
-                _categoryRepository.AddSubCategory(subcategory);
+                if (await _categoryService.IsThereThisSubCategory(model.Name))
+                    return BadRequest($"There is already a subcategory with this name '{model.Name}'");
+       
+                var sub = await _categoryService.AddSubCategory(model);
 
-                if (await _categoryRepository.SaveChangesAsync())
-                {
-                    var url = _linkGenerator.GetPathByAction(
+                var url = _linkGenerator.GetPathByAction(
                         HttpContext,
                         "Get",
-                        values: new { name, id = subcategory.SubCategoryId });
+                        values: new { name, id = sub.SubCategoryId });
 
-                    return Created(url, _mapper.Map<SubCategoryModel>(subcategory));
-                }
-                else
-                {
-                    return BadRequest("Failed to save new subcategory");
-                }
+                if (string.IsNullOrWhiteSpace(url))
+                    return BadRequest("Could not use curret category");
+
+                return Created(url, sub);
             }
             catch (Exception)
             {
@@ -104,34 +83,21 @@ namespace EStore.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<SubCategoryModel>> Put(string name, int id,SubCategoryModel model)
+        public async Task<ActionResult<SubCategoryModel>> Put(int id,SubCategoryModel model)
         {
             try
             {
 
-                var existing = await _categoryRepository.GetSubCategoryByNameSubCategory(name, model.Name);
-                if (existing != null) BadRequest("There is already a subcategory with this name");
+                if (!await _categoryService.IsThereThisSubCategory(model.Name))
+                    return BadRequest("There is already a subcategory with this name");
 
-                var sub = await _categoryRepository.GetSubCategoryByIdSubCategory(name, id);
-                if (sub == null) return NotFound("Couldn't find the subcategory");
+                if (!await _categoryService.IsThereThisSubCategory(id))
+                    return NotFound($"Couldn't find the subcategory with this id '{id}'");
 
-                if (sub.Category != null)
-                {
-                    var category = await _categoryRepository.GetCategoryByIdAsync(sub.Category.CategoryId);
-                    if (category == null) return NotFound("Couldn't find the category");
-                    sub.Category = category;
-                }
+                if (!await _categoryService.IsThereThisSubCategory(model.Name, id))
+                    return BadRequest($"Could not find subcategory with this id '{id}' in category '{model.Name}'");
 
-                _mapper.Map(model, sub);
-
-                if (await _categoryRepository.SaveChangesAsync())
-                {
-                    return _mapper.Map<SubCategoryModel>(sub);
-                }
-                else
-                {
-                    return BadRequest("Failed to update database");
-                }
+                return await _categoryService.UpdateSubCategory(id,model);
             }
             catch (Exception)
             {
@@ -143,20 +109,20 @@ namespace EStore.API.Controllers
         public async Task<ActionResult<SubCategoryModel>> Delete(string name, int id)
         {
             try
-            {
-                var sub = await _categoryRepository.GetSubCategoryByIdSubCategory(name, id);
-                if (sub == null) return NotFound("Couldn't find the subcategory");
-                _categoryRepository.DeleteSubCategory(sub);
+            {                
+               
+                if (!await _categoryService.IsThereThisCategory(name))               
+                    return BadRequest($"Could not find category with this name '{name}'");
 
-                if (await _categoryRepository.SaveChangesAsync())
-                {
+                var sub = await _categoryService.GetSubCategoryEntityByIdSubCategoryAndNameCategory(name, id);
+
+                if (sub == null)
+                    return NotFound($"Could not find subcategory with this id '{id}' in category '{name}'");
+                             
+                if (await _categoryService.DeleteSubCategory(sub))
                     return Ok();
-                }
                 else
-                {
-                    return BadRequest("Failed to delete sub category");
-                }
-
+                    return BadRequest("Failed to delete category");
             }
             catch (DbUpdateException)
             {

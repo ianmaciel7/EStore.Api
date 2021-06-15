@@ -9,6 +9,8 @@ using EStore.API.Data;
 using AutoMapper;
 using EStore.API.Models;
 using Microsoft.AspNetCore.Routing;
+using EStore.API.Services;
+using System.Diagnostics;
 
 namespace EStore.API.Controllers
 {
@@ -17,16 +19,14 @@ namespace EStore.API.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
-        private readonly IMapper _mapper;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
         private readonly LinkGenerator _linkGenerator;
 
-        public ProductsController(
-            IProductRepository productRepository,
-            IMapper mapper,LinkGenerator linkGenerator)
+        public ProductsController(IProductService productService,ICategoryService categoryService, LinkGenerator linkGenerator)
         {
-            this._productRepository = productRepository;
-            this._mapper = mapper;
+            this._productService = productService;
+            this._categoryService = categoryService;
             this._linkGenerator = linkGenerator;
         }
 
@@ -35,12 +35,7 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _productRepository.AllProductsAsync();
-                var result = new
-                {
-                    Count = results.Count(),
-                    Result = _mapper.Map<ProductModel[]>(results)
-                };
+                var result = await _productService.AllProductsAsync();             
                 return Ok(result);
             }
             catch (Exception)
@@ -54,11 +49,11 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var results = await _productRepository.GetProductByNameAsync(name);
+                var result = await _productService.GetProductByNameAsync(name);
 
-                if (results == null) return NotFound();
+                if (result == null) return NotFound();
 
-                return _mapper.Map<ProductModel>(results);
+                return result;
             }
             catch (Exception)
             {
@@ -71,25 +66,29 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var existing = await _productRepository.GetProductByNameAsync(model.Name);
-                if (existing != null) return BadRequest("There is already a product with this name");
+               
+                if (await _productService.IsThereThisProduct(model.Name)) 
+                    return BadRequest($"There is already a product with this name '{model.Name}'");
+
+                if (!await _categoryService.IsThereThisCategory(model.CategoryName))
+                    return BadRequest($"Couldn't find the category with this name '{model.CategoryName}'");
+
+                if (!await _categoryService.IsThereThisSubCategory(model.SubCategoryName))
+                    return BadRequest($"Couldn't find the subcategory with this name '{model.SubCategoryName}'");
 
                 var location = _linkGenerator.GetPathByAction("Get",
                     "Products",
                     new { name = model.Name }
                     );
 
-                if (string.IsNullOrWhiteSpace(location))
-                {
+                if (string.IsNullOrWhiteSpace(location))               
                     return BadRequest("Could not use curret product");
-                }
+                
+                var product = await _productService.AddProduct(model);
 
-                var product = _mapper.Map<Product>(model);
-                _productRepository.AddProducts(product);
-                if (await _productRepository.SaveChangesAsync())
-                {
-                    return Created($"/api/products/{product.Name}", _mapper.Map<ProductModel>(product));
-                }
+                if (product != null) 
+                    return Created($"/api/products/{product.Name}", model);
+                
             }
             catch (Exception)
             {
@@ -104,26 +103,25 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var existing = await _productRepository.GetProductByNameAsync(model.Name);
-                if (existing != null) return BadRequest("There is already a product with this name");
+                
+                if (await _productService.IsThereThisProduct(model.Name)) 
+                    return BadRequest($"There is already a product with this name '{model.Name}'");
 
-                var oldProduct = await _productRepository.GetProductByNameAsync(name);
-
-                if (oldProduct == null)
+                if (!await _productService.IsThereThisProduct(name))
                     return NotFound($"Could not find product with this name '{name}'");
-                _mapper.Map(model, oldProduct);
 
-                if (await _productRepository.SaveChangesAsync())
-                {
-                    return _mapper.Map<ProductModel>(oldProduct);
-                }
+                if (!await _categoryService.IsThereThisCategory(model.CategoryName))
+                    return BadRequest($"Couldn't find the category with this name '{model.CategoryName}'");
+
+                if (!await _categoryService.IsThereThisSubCategory(model.SubCategoryName))
+                    return BadRequest($"Couldn't find the subcategory with this name '{model.SubCategoryName}'");
+
+                return await _productService.UpdateProduct(name, model);                           
             }
             catch (Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
-
-            return BadRequest();
         }
 
         [HttpDelete("{name}")]
@@ -131,22 +129,20 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var oldProduct = await _productRepository.GetProductByNameAsync(name);
-                if (oldProduct == null)
-                    return NotFound($"Could not find product with this name '{name}'");
-                _productRepository.DeleteProduct(oldProduct);
+                var oldProduct = await _productService.GetProductEntityByNameAsync(name);
 
-                if (await _productRepository.SaveChangesAsync())
-                {
+                if (oldProduct == null)                
+                    return NotFound($"Could not find product with this name '{name}'");
+                    
+                if (await _productService.DeleteProduct(oldProduct))
                     return Ok();
-                }
+                else
+                    return BadRequest("Failed to delete product");
             }
             catch (Exception)
-            {
+            {               
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
-
-            return BadRequest();
         }
     }
 }

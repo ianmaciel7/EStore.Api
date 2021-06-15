@@ -8,6 +8,7 @@ namespace EStore.API.Models
 {
     public class SubCategoryModel
     {
+        public int SubCategoryId { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
