@@ -23,7 +23,7 @@ namespace EStore.API.Data
             _appDbContext.SubCategories.AddAsync(subCategory);
         }
 
-        public async Task<IEnumerable<Category>> AllCategoriesAsync(bool includeSubCategories = false)
+        public async Task<IEnumerable<Category>> AllCategories(bool includeSubCategories)
         {
             if (includeSubCategories == true)
             {
@@ -36,9 +36,10 @@ namespace EStore.API.Data
                 var query = _appDbContext.Categories;
                 return await query.ToListAsync();
             }
+
         }
 
-        public async Task<Category> GetCategoryByNameAsync(string name, bool includeSubCategories = false)
+        public async Task<Category> GetCategoryByName(string name)
         {
             IQueryable<Category> query;
 
@@ -112,5 +113,7 @@ namespace EStore.API.Data
             query = query.Where(s => s.Name == nameSub);
             return await query.FirstOrDefaultAsync();
         }
+
+        
     }
 }

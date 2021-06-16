@@ -12,5 +12,6 @@ namespace EStore.API.Models
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
+        public ICollection<ProductModel> Products { get; set; }
     }
 }

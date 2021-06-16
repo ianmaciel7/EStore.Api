@@ -41,9 +41,9 @@ namespace EStore.API.Services
             return model;
         }
 
-        public async Task<CategoryModel[]> AllCategoriesAsync(bool includeSubCategories = false)
+        public async Task<CategoryModel[]> AllCategories(bool includeSubCategories)
         {
-            var results = await _categoryRepository.AllCategoriesAsync(includeSubCategories);
+            var results = await _categoryRepository.AllCategories(includeSubCategories);
             return _mapper.Map<CategoryModel[]>(results);
         }
 
@@ -59,22 +59,29 @@ namespace EStore.API.Services
             return await _categoryRepository.SaveChangesAsync();
         }
 
-        public async Task<CategoryModel> GetCategoryByNameAsync(string name)
+        public async Task<CategoryModel> GetCategoryByName(string name)
         {
-            var result = await _categoryRepository.GetCategoryByNameAsync(name);
+            var result = await _categoryRepository.GetCategoryByName(name);
             var model = _mapper.Map<CategoryModel>(result);
             return model;
         }
 
-        public async Task<Category> GetCategoryEntityByNameAsync(string name)
+        public async Task<Category> GetCategoryEntityByName(string name)
         {
-            var result = await _categoryRepository.GetCategoryByNameAsync(name);
+            var result = await _categoryRepository.GetCategoryByName(name);
             return result;
         }
 
         public async Task<SubCategoryModel> GetSubCategoryByNameCategoryAndIdSubCategory(string name, int id)
         {
             var result = await _categoryRepository.GetSubCategoryByNameCategoryAndIdSubCategory(name,id);
+            var model = _mapper.Map<SubCategoryModel>(result);
+            return model;
+        }
+
+        public async Task<SubCategoryModel> GetSubCategoryByNameCategoryAndNameSubCategory(string nameCat, string nameSub)
+        {
+            var result = await _categoryRepository.GetSubCategoryByNameCategoryAndNameSubCategory(nameCat, nameSub);
             var model = _mapper.Map<SubCategoryModel>(result);
             return model;
         }
@@ -87,7 +94,7 @@ namespace EStore.API.Services
 
         public async Task<bool> IsThereThisCategory(string name)
         {
-            var existing = await _categoryRepository.GetCategoryByNameAsync(name);
+            var existing = await _categoryRepository.GetCategoryByName(name);
             if (existing != null) return true;
             return false;
         }
@@ -129,7 +136,7 @@ namespace EStore.API.Services
 
         public async Task<CategoryModel> UpdateCategory(string name, CategoryModel model)
         {
-            var oldCategory = await _categoryRepository.GetCategoryByNameAsync(name);
+            var oldCategory = await _categoryRepository.GetCategoryByName(name);
 
             _mapper.Map(model, oldCategory);
 

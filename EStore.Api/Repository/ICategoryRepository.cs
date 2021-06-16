@@ -7,8 +7,8 @@ namespace EStore.API.Data
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<Category>> AllCategoriesAsync(bool includeSubCategories = false);
-        Task<Category> GetCategoryByNameAsync(string name, bool includeSubCategories = false);
+        Task<IEnumerable<Category>> AllCategories(bool includeSubCategories);
+        Task<Category> GetCategoryByName(string name);
         Task<SubCategory> GetSubCategoryByNameCategoryAndIdSubCategory(string name, int id);        
         void AddCategory(Category category);
         void AddSubCategory(SubCategory subCategory);

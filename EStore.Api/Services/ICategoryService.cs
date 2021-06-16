@@ -11,11 +11,12 @@ namespace EStore.API.Services
 {
     public interface ICategoryService
     {
-        Task<CategoryModel[]> AllCategoriesAsync(bool includeSubCategories);             
-        Task<CategoryModel> GetCategoryByNameAsync(string name);
-        Task<Category> GetCategoryEntityByNameAsync(string name);   
+        Task<CategoryModel[]> AllCategories(bool includeSubCategories);             
+        Task<CategoryModel> GetCategoryByName(string name);
+        Task<Category> GetCategoryEntityByName(string name);   
         Task<SubCategoryModel> GetSubCategoryByNameCategoryAndIdSubCategory(string name, int id);
         Task<SubCategory> GetSubCategoryEntityByIdSubCategoryAndNameCategory(string name, int id);
+        Task<SubCategoryModel> GetSubCategoryByNameCategoryAndNameSubCategory(string nameCat, string nameSub);
         Task<CategoryModel> AddCategory(CategoryModel model);
         Task<SubCategoryModel> AddSubCategory(SubCategoryModel subcategory);    
         Task<bool> DeleteSubCategory(SubCategory sub);
@@ -29,7 +30,6 @@ namespace EStore.API.Services
         Task<bool> IsThereThisSubCategory(int id);
         Task<bool> IsThereThisSubCategory(string nameCategory, int idSub);
         Task<bool> IsThereThisSubCategory(string nameCategory, string nameSub);
-        
         
     }
 }

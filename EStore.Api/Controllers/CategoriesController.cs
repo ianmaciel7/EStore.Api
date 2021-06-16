@@ -33,8 +33,22 @@ namespace EStore.API.Controllers
         {
             try
             {
-                var result = await _categoryService.AllCategoriesAsync(includeSubCategories);
+                var result = await _categoryService.AllCategories(includeSubCategories);
                 return Ok(result);            
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpGet("{nameCat}")]
+        public async Task<ActionResult> Get(string nameCat)
+        {
+            try
+            {
+                var result = await _categoryService.GetCategoryByName(nameCat);
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -78,24 +92,24 @@ namespace EStore.API.Controllers
             return BadRequest();
         }
 
-        [HttpPut("{name}")]
-        public async Task<ActionResult<CategoryModel>> Put(string name,CategoryModel model)
+        [HttpPut("{nameCat}")]
+        public async Task<ActionResult<CategoryModel>> Put(string nameCat, CategoryModel model)
         {
             try
             {
                 if (await _categoryService.IsThereThisCategory(model.Name))
                     return BadRequest($"There is already a category with this name '{model.Name}'");
 
-                foreach (var s in model.SubCategories)
+                foreach (var s in model.SubCategories ?? Array.Empty<SubCategoryModel>())
                 {
                     if (await _categoryService.IsThereThisSubCategory(s.Name))
                         return BadRequest($"There is already a subcategory with this name '{s.Name}'");
                 }
 
-                if (!await _categoryService.IsThereThisCategory(name))
-                    return NotFound($"Could not find category with this name '{name}'");
+                if (!await _categoryService.IsThereThisCategory(nameCat))
+                    return NotFound($"Could not find category with this name '{nameCat}'");
 
-                return await _categoryService.UpdateCategory(name, model);
+                return await _categoryService.UpdateCategory(nameCat, model);
             }
             catch (Exception)
             {
@@ -103,15 +117,15 @@ namespace EStore.API.Controllers
             }
         }
 
-        [HttpDelete("{name}")]
-        public async Task<IActionResult> Delete(string name)
+        [HttpDelete("{nameCat}")]
+        public async Task<IActionResult> Delete(string nameCat)
         {
             try
             {
-                var oldCategory = await _categoryService.GetCategoryEntityByNameAsync(name);
+                var oldCategory = await _categoryService.GetCategoryEntityByName(nameCat);
 
                 if (oldCategory == null)
-                    return NotFound($"Could not find category with this name '{name}'");
+                    return NotFound($"Could not find category with this name '{nameCat}'");
 
                 if (await _categoryService.DeleteCategory(oldCategory))
                     return Ok();

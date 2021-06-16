@@ -8,6 +8,7 @@ namespace EStore.API.Models
 {
     public class ProductModel
     {
+        public int ProductId { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }

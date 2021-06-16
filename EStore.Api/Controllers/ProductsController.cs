@@ -15,7 +15,7 @@ using System.Diagnostics;
 namespace EStore.API.Controllers
 {
     [ApiVersion("1.1")]
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
@@ -30,12 +30,20 @@ namespace EStore.API.Controllers
             this._linkGenerator = linkGenerator;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> Get()
+        [HttpGet("Categories/{nameCat}/SubCategories/{nameSub}/[controller]")]
+        public async Task<ActionResult> Get(string nameCat, string nameSub)
         {
             try
             {
-                var result = await _productService.AllProductsAsync();             
+
+                if (!await _categoryService.IsThereThisCategory(nameCat))
+                    return BadRequest($"Could not find category with this name '{nameCat}'");
+
+                if (!await _categoryService.IsThereThisSubCategory(nameCat,nameSub))
+                    return BadRequest($"Could not find subcategory with this name '{nameSub}' in category '{nameCat}'");
+
+                var result = await _productService.GetProductByNameCategoryAndNameSubCategory(nameCat, nameSub);
+
                 return Ok(result);
             }
             catch (Exception)
@@ -44,12 +52,18 @@ namespace EStore.API.Controllers
             }
         }
 
-        [HttpGet("{name}")]
-        public async Task<ActionResult<ProductModel>> Get(string name)
+        [HttpGet("Categories/{nameCat}/SubCategories/{nameSub}/[controller]/{idProd:int}")]
+        public async Task<ActionResult<ProductModel>> Get(string nameCat, string nameSub,int idProd)
         {
             try
             {
-                var result = await _productService.GetProductByNameAsync(name);
+                if (!await _categoryService.IsThereThisCategory(nameCat))
+                    return BadRequest($"Could not find category with this name '{nameCat}'");
+
+                if (!await _categoryService.IsThereThisSubCategory(nameCat, nameSub))
+                    return BadRequest($"Could not find subcategory with this name '{nameSub}' in category '{nameCat}'");
+       
+                var result = await _productService.GetProductByNameCategoryAndNameSubCategoryAndIdProduct(nameCat,nameSub, idProd);
 
                 if (result == null) return NotFound();
 
@@ -61,7 +75,25 @@ namespace EStore.API.Controllers
             }
         }
 
-        [HttpPost()]
+        [HttpGet("[controller]/{idProd:int}")]
+        public async Task<ActionResult<ProductModel>> Get(int idProd)
+        {
+            try
+            {
+
+                var result = await _productService.GetProductById(idProd);
+
+                if (result == null) return NotFound();
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpPost("[controller]")]
         public async Task<ActionResult<ProductModel>> Post(ProductModel model)
         {
             try
@@ -78,7 +110,7 @@ namespace EStore.API.Controllers
 
                 var location = _linkGenerator.GetPathByAction("Get",
                     "Products",
-                    new { name = model.Name }
+                    new { nameCat = model.CategoryName, nameSub = model.SubCategoryName, idProd = model.ProductId }
                     );
 
                 if (string.IsNullOrWhiteSpace(location))               
@@ -98,8 +130,8 @@ namespace EStore.API.Controllers
             return BadRequest();
         }
 
-        [HttpPut("{name}")]
-        public async Task<ActionResult<ProductModel>> Put(string name, ProductModel model)
+        [HttpPut("[controller]/{idProd:int}")]
+        public async Task<ActionResult<ProductModel>> Put(int idProd, ProductModel model)
         {
             try
             {
@@ -107,8 +139,8 @@ namespace EStore.API.Controllers
                 if (await _productService.IsThereThisProduct(model.Name)) 
                     return BadRequest($"There is already a product with this name '{model.Name}'");
 
-                if (!await _productService.IsThereThisProduct(name))
-                    return NotFound($"Could not find product with this name '{name}'");
+                if (!await _productService.IsThereThisProduct(idProd))
+                    return NotFound($"Could not find product with this id '{idProd}'");
 
                 if (!await _categoryService.IsThereThisCategory(model.CategoryName))
                     return BadRequest($"Couldn't find the category with this name '{model.CategoryName}'");
@@ -116,7 +148,7 @@ namespace EStore.API.Controllers
                 if (!await _categoryService.IsThereThisSubCategory(model.SubCategoryName))
                     return BadRequest($"Couldn't find the subcategory with this name '{model.SubCategoryName}'");
 
-                return await _productService.UpdateProduct(name, model);                           
+                return await _productService.UpdateProduct(idProd, model);                           
             }
             catch (Exception)
             {
@@ -124,15 +156,15 @@ namespace EStore.API.Controllers
             }
         }
 
-        [HttpDelete("{name}")]
-        public async Task<IActionResult> Delete(string name)
+        [HttpDelete("[controller]/{idProd:int}")]
+        public async Task<IActionResult> Delete(int idProd)
         {
             try
             {
-                var oldProduct = await _productService.GetProductEntityByNameAsync(name);
+                var oldProduct = await _productService.GetProductEntityById(idProd);
 
                 if (oldProduct == null)                
-                    return NotFound($"Could not find product with this name '{name}'");
+                    return NotFound($"Could not find product with this id '{idProd}'");
                     
                 if (await _productService.DeleteProduct(oldProduct))
                     return Ok();
