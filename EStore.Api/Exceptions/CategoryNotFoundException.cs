@@ -8,7 +8,7 @@ namespace EStore.Api.Exceptions
     public class CategoryNotFoundException : Exception
     {        
         public CategoryNotFoundException(string categoryName) 
-            : base($"Could not find category with this name '{categoryName}'")
+            : base($"Não foi possivel encontrar produto com nome '{categoryName}'")
         {
         }
     }

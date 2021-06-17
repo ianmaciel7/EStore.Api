@@ -8,9 +8,15 @@ namespace EStore.API.Data.Entities
 {
     public class SubCategory
     {
+
         public int SubCategoryId { get; set; }
         public string Name { get; set; }     
         public Category Category { get; set; }
         public ICollection<Product> Products { get; set; }
+
+        public SubCategory()
+        {
+            Products = new List<Product>();
+        }
     }
 }

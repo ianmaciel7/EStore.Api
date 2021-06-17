@@ -1,5 +1,7 @@
 ﻿using EStore.Api.Exceptions;
+using EStore.Api.InputModel;
 using EStore.Api.Services;
+using EStore.Api.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace EStore.Api.Controllers.V1
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/v1/Categories/{categoryName}/SubCategories/{subCategoryName}/[controller]")]
     [ApiController]
     public class ProductsController : Controller
     {
@@ -25,7 +27,7 @@ namespace EStore.Api.Controllers.V1
             this._linkGenerator = linkGenerator;
         }
 
-        [HttpGet("Categories/{categoryName}/SubCategories/{subCategoryName}/[controller]")]
+        [HttpGet]
         public async Task<ActionResult> Get(
                         [FromRoute] string categoryName,
                         [FromRoute] string subCategoryName,
@@ -53,6 +55,68 @@ namespace EStore.Api.Controllers.V1
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
+        }
+
+        [HttpGet("{productId:int}")]
+        public async Task<ActionResult> Get(
+                        [FromRoute] string categoryName,
+                        [FromRoute] string subCategoryName,
+                        [FromRoute] int productId)
+        {
+            try
+            {
+                var result = await _categoryService.GetProduct(categoryName, subCategoryName,productId);
+                return Ok(result);
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ProductNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<ProductViewModel>> Post(
+            [FromRoute] string categoryName,
+            [FromRoute] string subCategoryName, 
+            [FromBody] ProductInputModel model)
+        {
+            try
+            {
+                var result = await _categoryService.AddProductAsync(categoryName, subCategoryName, model);
+                var uri = _linkGenerator.GetPathByAction("Get",
+                    "Products",
+                    new { categoryName = categoryName, subCategoryName = subCategoryName, productId = result.ProductId }
+                    );
+                return Created(uri, result);
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ProductNameNotUniqueException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }           
         }
     }
 }

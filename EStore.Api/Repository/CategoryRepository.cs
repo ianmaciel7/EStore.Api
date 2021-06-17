@@ -1,4 +1,5 @@
-﻿using EStore.API.Data;
+﻿using EStore.Api.InputModel;
+using EStore.API.Data;
 using EStore.API.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -29,34 +30,52 @@ namespace EStore.Api.Repository
 
         }
 
-        public async Task<Category> GetCategoryAsync(string categoryName,bool includeSubCategories = false, bool includeProducts = false)
+        public Task<Product> GetProductAsync(string categoryName, string subCategoryName, int productId)
         {
             IQueryable<Category> query = _appDbContext.Categories;
+            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
 
-            if (includeSubCategories)
-            {
-                if (includeProducts)
-                    query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
-                else
-                    query.Include(c => c.SubCategories);                                  
-            }
-            
+            var cats = query.Where(c => c.Name == categoryName);
+            var subs = cats.SelectMany(c => c.SubCategories).Where(s => s.Name == subCategoryName);
+            var prod = subs.SelectMany(s => s.Products).Where(p => p.ProductId == productId).FirstOrDefaultAsync();
+            return prod;
+        }
+
+        public async Task<Category> GetCategoryAsync(string categoryName)
+        {
+            IQueryable<Category> query = _appDbContext.Categories;    
+            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);                                                                    
             query = query.Where(c => c.Name == categoryName);
 
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<SubCategory> GetSubCategoryAsync(string categoryName, string subCategoryName, bool includeProducts = true)
+        public async Task<SubCategory> GetSubCategoryAsync(string categoryName, string subCategoryName)
         {
             IQueryable<SubCategory> query = _appDbContext.SubCategories;
+            query.Include(s => s.Products).Include(s => s.Category);
 
-            if (includeProducts)
-                query.Include(s => s.Products);
-           
-            query = query.Where(s => s.Category.Name == categoryName)
-                         .Where(s => s.Name == subCategoryName);
+            query = query.Where(s => s.Category.Name == categoryName);
+            query = query.Where(s => s.Name == subCategoryName);
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<Product> GetProductAsync(string productName)
+        {
+            IQueryable<Product> query = _appDbContext.Products;
+
+            query = query.Where(p => p.Name == productName);
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<Product> AddProductAsync(string subCategoryName, Product product)
+        {
+            var entityEntry = await _appDbContext.Products.AddAsync(product);
+            var subCategory = _appDbContext.SubCategories.FirstOrDefaultAsync(s => s.Name == subCategoryName).Result;
+            subCategory.Products.Add(product);           
+            await _appDbContext.SaveChangesAsync();
+            return entityEntry.Entity;
         }
 
         public void Dispose()

@@ -8,7 +8,7 @@ namespace EStore.Api.Exceptions
     public class SubCategoryNotFoundException : Exception
     {
         public SubCategoryNotFoundException(string categoryName,string subcategoryName)
-            : base($"Could not find subcategory with this name '{categoryName}' in category '{subcategoryName}'")
+            : base($"Não foi possivel encontrar subcategoria com nome '{subcategoryName}' na categoria '{categoryName}'")
         {
         }
     }
