@@ -11,10 +11,10 @@ namespace EStore.API.ViewModel
     public class CategoryViewModel
     {
         [Required]
-        public int ProductId { get; set; }
+        public int CategoryId { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
-        public ICollection<SubCategoryInputModel> SubCategories { get; set; }
+        public ICollection<SubCategory> SubCategories { get; set; }
     }
 }

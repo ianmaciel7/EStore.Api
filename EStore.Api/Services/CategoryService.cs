@@ -23,6 +23,54 @@ namespace EStore.Api.Services
             this._categoryRepository = categoryRepository;
         }
 
+        public async Task<CategoryViewModel> GetCategoryAsync(int categoryId)
+        {
+            var category = await _categoryRepository.GetCategoryAsync(categoryId);
+
+            if (!IsThereThisCategory(category))
+                throw new CategoryNotFoundException(categoryId);
+
+            return new CategoryViewModel
+            {
+                CategoryId = category.CategoryId,
+                Name = category.Name,
+                SubCategories = category.SubCategories                
+            };
+        }
+
+        public async Task<CategoryViewModel> AddCategoryAsync(CategoryInputModel model)
+        {
+            
+            var category = new Category()
+            {               
+                Name = model.Name,               
+            };
+                      
+            if (await IsThereThisProductAsync(model.Name))
+                throw new CategoryNameNotUniqueException(model.Name);
+         
+            var addedCategory = _categoryRepository.AddCategoryAsync(category).Result;
+            await _categoryRepository.SaveChangesAsync();
+            return new CategoryViewModel
+            {
+                CategoryId = addedCategory.CategoryId,
+                Name = addedCategory.Name,
+                SubCategories = addedCategory.SubCategories               
+            };
+
+        }
+
+        public async Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync()
+        {
+            var categories = await _categoryRepository.GetAllCategoriesAsync();
+            return categories.Select(c => new CategoryViewModel
+            {
+                CategoryId = c.CategoryId,
+                Name = c.Name,
+                SubCategories = c.SubCategories
+            });
+        }
+
         public async Task<IEnumerable<SubCategoryViewModel>> GetAllSubCategoriesAsync(string categoryName)
         {
             if (!await IsThereThisCategoryAsync(categoryName))
@@ -234,10 +282,17 @@ namespace EStore.Api.Services
             return false;
         }
 
+        private bool IsThereThisCategory(Category category)
+        {
+            var existing = category;
+            if (existing != null) return true;
+            return false;
+        }
+
         public void Dispose()
         {
             _categoryRepository?.Dispose();
         }
-
+        
     }
 }

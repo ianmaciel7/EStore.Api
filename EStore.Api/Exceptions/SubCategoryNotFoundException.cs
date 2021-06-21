@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 namespace EStore.Api.Exceptions
 {
     public class SubCategoryNotFoundException : Exception
-    {
-        private int _subCategoryId;
-
+    {       
         public SubCategoryNotFoundException(string categoryName,int subCategoryId)
             : base($"Não foi possivel encontrar subcategoria com id '{subCategoryId}' na categoria '{categoryName}'")
         {          
