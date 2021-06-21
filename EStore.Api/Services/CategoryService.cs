@@ -77,7 +77,7 @@ namespace EStore.Api.Services
             };
 
             var addedProduct = await _categoryRepository.AddProductAsync(subCategoryName,product);
-
+            await _categoryRepository.SaveChangesAsync();
             return new ProductViewModel
             {
                 ProductId = addedProduct.ProductId,
@@ -85,6 +85,58 @@ namespace EStore.Api.Services
                 Name = addedProduct.Name
             };
 
+        }
+
+        public async Task<ProductViewModel> UpdateProductAsync(string categoryName, string subCategoryName, int productId, ProductInputModel model)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            if (!await IsThereThisSubCategoryAsync(categoryName, subCategoryName))
+                throw new SubCategoryNotFoundException(categoryName, subCategoryName);
+
+            var product = await _categoryRepository.GetProductAsync(categoryName, subCategoryName, productId);
+
+            if (!IsThereThisProduct(product))            
+                throw new ProductNotFoundException(subCategoryName, productId);            
+                
+            if (await IsThereThisProductAsync(model.Name))
+                throw new ProductNameNotUniqueException(model.Name);
+
+            var newProduct = new Product()
+            {
+                ProductId = productId,
+                Price = model.Price,
+                Name = model.Name,
+            };
+
+            _categoryRepository.UpdateProduct(product,newProduct);
+            await _categoryRepository.SaveChangesAsync();
+
+            return new ProductViewModel
+            {
+                ProductId = newProduct.ProductId,
+                Price = newProduct.Price,
+                Name = newProduct.Name
+            };
+
+        }
+
+        public async Task DeleteProductAsync(string categoryName, string subCategoryName, int productId)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            if (!await IsThereThisSubCategoryAsync(categoryName, subCategoryName))
+                throw new SubCategoryNotFoundException(categoryName, subCategoryName);
+
+            var product = await _categoryRepository.GetProductAsync(categoryName, subCategoryName, productId);
+
+            if (!IsThereThisProduct(product))
+                throw new ProductNotFoundException(subCategoryName, productId);
+
+            _categoryRepository.DeleteProduct(product);
+            await _categoryRepository.SaveChangesAsync();
         }
 
         private async Task<bool> IsThereThisCategoryAsync(string categoryName)
@@ -118,6 +170,7 @@ namespace EStore.Api.Services
         public void Dispose()
         {
             _categoryRepository?.Dispose();
-        }        
+        }
+        
     }
 }

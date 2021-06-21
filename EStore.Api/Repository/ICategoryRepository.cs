@@ -15,7 +15,10 @@ namespace EStore.Api.Repository
         Task<SubCategory> GetSubCategoryAsync(string categoryName, string subCategoryName);
         Task<Product> GetProductAsync(string productName);
         Task<Product> GetProductAsync(string categoryName, string subCategoryName, int productId);
-        Task<Product> AddProductAsync(string subCategoryName, Product product);
+        Task<Product> AddProductAsync(string subCategoryName, Product product);      
+        void DeleteProduct(Product product);
+        void UpdateProduct(Product newProduct);
+        Task SaveChangesAsync();
         
     }
 }

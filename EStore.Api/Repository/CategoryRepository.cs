@@ -73,14 +73,31 @@ namespace EStore.Api.Repository
         {
             var entityEntry = await _appDbContext.Products.AddAsync(product);
             var subCategory = _appDbContext.SubCategories.FirstOrDefaultAsync(s => s.Name == subCategoryName).Result;
-            subCategory.Products.Add(product);           
-            await _appDbContext.SaveChangesAsync();
+            subCategory.Products.Add(product);                      
             return entityEntry.Entity;
         }
 
+        public void UpdateProduct(Product newProduct)
+        {
+            var products = _appDbContext.Products;
+            var oldProduct = products.Where(p => p.ProductId == newProduct.ProductId).FirstOrDefault();
+            oldProduct.Name = newProduct.Name;
+            oldProduct.Price = newProduct.Price;
+        }
+        public void DeleteProduct(Product product)
+        {
+            _appDbContext.Remove(product);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _appDbContext.SaveChangesAsync();
+        }
+        
         public void Dispose()
         {
             _appDbContext.Dispose();
         }
+        
     }
 }

@@ -12,5 +12,7 @@ namespace EStore.Api.Services
         Task<IEnumerable<ProductViewModel>> GetAllProductAsync(string categoryName, string subCategoryName, int page,int quantity);
         Task<ProductViewModel> AddProductAsync(string categoryName, string subCategoryName, ProductInputModel model);
         Task<ProductViewModel> GetProduct(string categoryName, string subCategoryName, int productId);
+        Task<ProductViewModel> UpdateProductAsync(string categoryName, string subCategoryName, int productId, ProductInputModel model);
+        Task DeleteProductAsync(string categoryName, string subCategoryName, int productId);
     }
 }

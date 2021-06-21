@@ -118,5 +118,68 @@ namespace EStore.Api.Controllers.V1
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }           
         }
+
+        [HttpPut("{productId:int}")]
+        public async Task<ActionResult<ProductViewModel>> Put(
+            [FromRoute] string categoryName,
+            [FromRoute] string subCategoryName,
+            [FromRoute] int productId,
+            [FromBody] ProductInputModel model)
+        {
+            try
+            {
+                var result = await _categoryService.UpdateProductAsync(categoryName, subCategoryName,productId,model);
+                return Ok(result);
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ProductNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ProductNameNotUniqueException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpDelete("{productId:int}")]
+        public async Task<ActionResult> Delete(
+            [FromRoute] string categoryName,
+            [FromRoute] string subCategoryName,
+            [FromRoute] int productId)
+        {
+            try
+            {
+                await _categoryService.DeleteProductAsync(categoryName, subCategoryName, productId);
+                return Ok();
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (ProductNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }            
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
     }
 }
