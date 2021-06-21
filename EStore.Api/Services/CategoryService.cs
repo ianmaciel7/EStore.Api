@@ -3,7 +3,11 @@ using EStore.Api.InputModel;
 using EStore.Api.Repository;
 using EStore.Api.ViewModel;
 using EStore.API.Data;
+using EStore.API.Data.Entities;
+using EStore.API.InputModel;
+using EStore.API.ViewModel;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,8 +22,64 @@ namespace EStore.Api.Services
         {
             this._categoryRepository = categoryRepository;
         }
-        
-        public async Task<IEnumerable<ProductViewModel>> GetAllProductAsync(string categoryName, string subCategoryName, int page, int quantity)
+
+        public async Task<IEnumerable<SubCategoryViewModel>> GetAllSubCategoriesAsync(string categoryName)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+           
+            var subCategories = await _categoryRepository.GetAllSubCategoriesAsync(categoryName);
+            return subCategories.Select(s => new SubCategoryViewModel
+            {
+                SubCategoryId = s.SubCategoryId,
+                Name = s.Name,
+                Products = s.Products
+            });
+        }
+
+        public async Task<SubCategoryViewModel> GetSubCategoryAsync(string categoryName, int subCategoryId)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            var subCategory = await _categoryRepository.GetSubCategoryAsync(categoryName, subCategoryId);
+
+            if (!IsThereThisSubCategory(subCategory))
+                throw new SubCategoryNotFoundException(categoryName,subCategoryId);
+
+            return new SubCategoryViewModel
+            {
+                SubCategoryId = subCategory.SubCategoryId,
+                Name = subCategory.Name,
+                Products = subCategory.Products
+            };
+        }
+
+        public async Task<SubCategoryViewModel> AddSubCategoryAsync(string categoryName, CategoryInputModel model)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            if (await IsThereThisProductAsync(model.Name))
+                throw new SubCategoryNameNotUniqueException(model.Name);
+
+            var subCategory = new SubCategory()
+            {               
+                Name = model.Name
+            };
+
+            var addedSubCategory = await _categoryRepository.AddSubCategoryAsync(categoryName,subCategory);
+            await _categoryRepository.SaveChangesAsync();
+
+            return new SubCategoryViewModel
+            {
+                SubCategoryId = addedSubCategory.SubCategoryId,
+                Name = addedSubCategory.Name,
+                Products = addedSubCategory.Products
+            };
+        }
+
+        public async Task<IEnumerable<ProductViewModel>> GetAllProductsAsync(string categoryName, string subCategoryName, int page, int quantity)
         {
 
             if (!await IsThereThisCategoryAsync(categoryName))
@@ -38,7 +98,7 @@ namespace EStore.Api.Services
             });
         }
 
-        public async Task<ProductViewModel> GetProduct(string categoryName, string subCategoryName, int productId)
+        public async Task<ProductViewModel> GetProductAsync(string categoryName, string subCategoryName, int productId)
         {
             if (!await IsThereThisCategoryAsync(categoryName))
                 throw new CategoryNotFoundException(categoryName);
@@ -110,7 +170,7 @@ namespace EStore.Api.Services
                 Name = model.Name,
             };
 
-            _categoryRepository.UpdateProduct(product,newProduct);
+            _categoryRepository.UpdateProduct(newProduct);
             await _categoryRepository.SaveChangesAsync();
 
             return new ProductViewModel
@@ -167,10 +227,17 @@ namespace EStore.Api.Services
             return false;
         }
 
+        private bool IsThereThisSubCategory(SubCategory subCategory)
+        {
+            var existing = subCategory;
+            if (existing != null) return true;
+            return false;
+        }
+
         public void Dispose()
         {
             _categoryRepository?.Dispose();
         }
-        
+
     }
 }

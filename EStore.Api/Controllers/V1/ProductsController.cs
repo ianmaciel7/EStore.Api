@@ -36,7 +36,7 @@ namespace EStore.Api.Controllers.V1
         {
             try
             {
-                var result = await _categoryService.GetAllProductAsync(categoryName, subCategoryName,page,quantity);
+                var result = await _categoryService.GetAllProductsAsync(categoryName, subCategoryName,page,quantity);
                 
                 if (!result.Any())
                     return NoContent();
@@ -65,7 +65,7 @@ namespace EStore.Api.Controllers.V1
         {
             try
             {
-                var result = await _categoryService.GetProduct(categoryName, subCategoryName,productId);
+                var result = await _categoryService.GetProductAsync(categoryName, subCategoryName,productId);
                 return Ok(result);
             }
             catch (CategoryNotFoundException ex)
