@@ -10,6 +10,9 @@ namespace EStore.Api.Repository
 {
     public interface ICategoryRepository : IDisposable
     {
+        Task<IEnumerable<SubCategory>> GetAllSubCategoriesAsync(string categoryName);
+        Task<SubCategory> GetSubCategoryAsync(string categoryName, int subCategoryId);
+        Task<SubCategory> AddSubCategoryAsync(string categoryName,SubCategory subCategory);
         Task<IEnumerable<Product>> GetAllProductsAsync(string categoryName, string subCategoryName, int page, int quantity);
         Task<Category> GetCategoryAsync(string categoryName);
         Task<SubCategory> GetSubCategoryAsync(string categoryName, string subCategoryName);

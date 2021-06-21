@@ -16,7 +16,14 @@ namespace EStore.Api.Repository
         {
             _appDbContext = appDbContext;
         }
-        
+
+        public async Task<IEnumerable<SubCategory>> GetAllSubCategoriesAsync(string categoryName)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories;
+            query = query.Include(c => c.Category);           
+            return await Task.FromResult(query.ToArray());
+        }
+
         public async Task<IEnumerable<Product>> GetAllProductsAsync(string categoryName, string subCategoryName, int page, int quantity)
         {
             IQueryable<Category> query = _appDbContext.Categories;
@@ -61,6 +68,17 @@ namespace EStore.Api.Repository
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<SubCategory> GetSubCategoryAsync(string categoryName, int subCategoryId)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories;
+            query.Include(s => s.Products).Include(s => s.Category);
+
+            query = query.Where(s => s.Category.Name == categoryName);
+            query = query.Where(s => s.SubCategoryId == subCategoryId);
+
+            return await query.FirstOrDefaultAsync();
+        }
+
         public async Task<Product> GetProductAsync(string productName)
         {
             IQueryable<Product> query = _appDbContext.Products;
@@ -98,6 +116,13 @@ namespace EStore.Api.Repository
         {
             _appDbContext.Dispose();
         }
-        
+
+        public async Task<SubCategory> AddSubCategoryAsync(string categoryName,SubCategory subCategory)
+        {
+            var entityEntry = await _appDbContext.SubCategories.AddAsync(subCategory);
+            var category = _appDbContext.Categories.FirstOrDefaultAsync(c => c.Name == categoryName);
+            category.Result.SubCategories.Add(entityEntry.Entity);
+            return entityEntry.Entity;
+        }
     }
 }
