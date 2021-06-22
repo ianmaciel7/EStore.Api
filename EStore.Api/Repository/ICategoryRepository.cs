@@ -27,5 +27,8 @@ namespace EStore.Api.Repository
         Task SaveChangesAsync();
         void UpdateCategory(Category newCategory);
         void DeleteCategory(Category category);
+        Task<SubCategory> GetSubCategoryAsync(string subCategoryName);
+        void UpdateSubCategory(SubCategory newSubCategory);
+        void DeleteSubCategory(SubCategory subCategory);
     }
 }

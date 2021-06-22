@@ -24,5 +24,7 @@ namespace EStore.Api.Services
         Task<ProductViewModel> UpdateProductAsync(string categoryName, string subCategoryName, int productId, ProductInputModel model);
         Task DeleteProductAsync(string categoryName, string subCategoryName, int productId);
         Task DeleteCategoryAsync(int categoryId);
+        Task<SubCategoryViewModel> UpdateSubCategoryAsync(string categoryName, int categoryId, SubCategoryInputModel model);
+        Task DeleteSubCategoryAsync(string categoryName, int subCategoryId);
     }
 }

@@ -37,7 +37,7 @@ namespace EStore.Api.Services
                 SubCategories = category.SubCategories                
             };
         }
-
+       
         public async Task DeleteCategoryAsync(int categoryId)
         {
             var category = await _categoryRepository.GetCategoryAsync(categoryId);
@@ -46,7 +46,7 @@ namespace EStore.Api.Services
                 throw new CategoryNotFoundException(categoryId);
 
             if (!category.SubCategories.Any())
-                throw new CategoryContainsSubcategoriesException(categoryId);
+                throw new CategoryContainsSubCategoriesException(categoryId);
 
             _categoryRepository.DeleteCategory(category);
             await _categoryRepository.SaveChangesAsync();
@@ -150,7 +150,7 @@ namespace EStore.Api.Services
             if (!await IsThereThisCategoryAsync(categoryName))
                 throw new CategoryNotFoundException(categoryName);
 
-            if (await IsThereThisProductAsync(model.Name))
+            if (await IsThereThisSubCategoryAsync(model.Name))
                 throw new SubCategoryNameNotUniqueException(model.Name);
 
             var subCategory = new SubCategory()
@@ -167,6 +167,40 @@ namespace EStore.Api.Services
                 Name = addedSubCategory.Name,
                 Products = addedSubCategory.Products
             };
+        }
+       
+        public async Task<SubCategoryViewModel> UpdateSubCategoryAsync(string categoryName, int subCategoryId, SubCategoryInputModel model)
+        {
+            var subCategoryOld = await _categoryRepository.GetSubCategoryAsync(categoryName,subCategoryId);
+
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            if (!IsThereThisSubCategory(subCategoryOld))
+                throw new SubCategoryNotFoundException(categoryName,subCategoryId);
+
+            if (await IsThereThisSubCategoryAsync(model.Name))
+                throw new SubCategoryNameNotUniqueException(model.Name);
+
+            var subCategory = new SubCategory()
+            {
+                SubCategoryId = subCategoryOld.SubCategoryId,
+                Category = subCategoryOld.Category,
+                Products = subCategoryOld.Products,
+                Name = model.Name
+            };
+
+            _categoryRepository.UpdateSubCategory(subCategory);
+            await _categoryRepository.SaveChangesAsync();
+
+            return new SubCategoryViewModel
+            {
+                SubCategoryId = subCategory.SubCategoryId,
+                Name = subCategory.Name,
+                Products = subCategory.Products
+                
+            };
+
         }
 
         public async Task<IEnumerable<ProductViewModel>> GetAllProductsAsync(string categoryName, string subCategoryName, int page, int quantity)
@@ -289,6 +323,23 @@ namespace EStore.Api.Services
             await _categoryRepository.SaveChangesAsync();
         }
 
+        public async Task DeleteSubCategoryAsync(string categoryName, int subCategoryId)
+        {
+            if (!await IsThereThisCategoryAsync(categoryName))
+                throw new CategoryNotFoundException(categoryName);
+
+            var subCategory = await _categoryRepository.GetSubCategoryAsync(categoryName, subCategoryId);
+
+            if (!IsThereThisSubCategory(subCategory))
+                throw new SubCategoryNotFoundException(categoryName, subCategoryId);
+
+            if (subCategory.Products.Any())
+                throw new SubCategoriesContainsProductsException(subCategoryId);
+
+            _categoryRepository.DeleteSubCategory(subCategory);
+            await _categoryRepository.SaveChangesAsync();
+        }
+
         private async Task<bool> IsThereThisCategoryAsync(string categoryName)
         {
             var existing = await _categoryRepository.GetCategoryAsync(categoryName);
@@ -299,6 +350,13 @@ namespace EStore.Api.Services
         private async Task<bool> IsThereThisSubCategoryAsync(string categoryName, string subCategoryName)
         {
             var existing = await _categoryRepository.GetSubCategoryAsync(categoryName, subCategoryName);
+            if (existing != null) return true;
+            return false;
+        }
+
+        private async Task<bool> IsThereThisSubCategoryAsync(string subCategoryName)
+        {
+            var existing = await _categoryRepository.GetSubCategoryAsync(subCategoryName);
             if (existing != null) return true;
             return false;
         }
@@ -334,6 +392,7 @@ namespace EStore.Api.Services
         public void Dispose()
         {
             _categoryRepository?.Dispose();
-        }        
+        }
+        
     }
 }

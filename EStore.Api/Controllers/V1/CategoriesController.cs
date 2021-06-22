@@ -121,7 +121,7 @@ namespace EStore.Api.Controllers.V1
             {
                 return BadRequest(ex.Message);
             }
-            catch (CategoryContainsSubcategoriesException ex)
+            catch (CategoryContainsSubCategoriesException ex)
             {
                 return Conflict(ex.Message);
             }

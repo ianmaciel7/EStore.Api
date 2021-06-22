@@ -38,14 +38,16 @@ namespace EStore.Api.Repository
         public async Task<IEnumerable<SubCategory>> GetAllSubCategoriesAsync(string categoryName)
         {
             IQueryable<SubCategory> query = _appDbContext.SubCategories;
-            query = query.Include(c => c.Category);           
+            query = query.Include(c => c.Category).Include(c => c.Products);
+            query = query.Where(c => c.Category.Name == categoryName);
+            
             return await Task.FromResult(query.ToArray());
         }
 
         public async Task<IEnumerable<Product>> GetAllProductsAsync(string categoryName, string subCategoryName, int page, int quantity)
         {
             IQueryable<Category> query = _appDbContext.Categories;
-            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
+            query = query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
 
             var cats = query.Where(c => c.Name == categoryName);
             var subs = cats.SelectMany(c => c.SubCategories).Where(s => s.Name == subCategoryName);
@@ -58,7 +60,7 @@ namespace EStore.Api.Repository
         public Task<Product> GetProductAsync(string categoryName, string subCategoryName, int productId)
         {
             IQueryable<Category> query = _appDbContext.Categories;
-            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
+            query = query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
 
             var cats = query.Where(c => c.Name == categoryName);
             var subs = cats.SelectMany(c => c.SubCategories).Where(s => s.Name == subCategoryName);
@@ -69,7 +71,7 @@ namespace EStore.Api.Repository
         public async Task<Category> GetCategoryAsync(string categoryName)
         {
             IQueryable<Category> query = _appDbContext.Categories;    
-            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);                                                                    
+            query = query.Include(c => c.SubCategories).ThenInclude(s => s.Products);                                                                    
             query = query.Where(c => c.Name == categoryName);
             return await query.FirstOrDefaultAsync();
         }
@@ -77,7 +79,7 @@ namespace EStore.Api.Repository
         public async Task<SubCategory> GetSubCategoryAsync(string categoryName, string subCategoryName)
         {
             IQueryable<SubCategory> query = _appDbContext.SubCategories;
-            query.Include(s => s.Products).Include(s => s.Category);
+            query = query.Include(s => s.Products).Include(s => s.Category);
 
             query = query.Where(s => s.Category.Name == categoryName);
             query = query.Where(s => s.Name == subCategoryName);
@@ -88,7 +90,7 @@ namespace EStore.Api.Repository
         public async Task<SubCategory> GetSubCategoryAsync(string categoryName, int subCategoryId)
         {
             IQueryable<SubCategory> query = _appDbContext.SubCategories;
-            query.Include(s => s.Products).Include(s => s.Category);
+            query = query.Include(s => s.Products).Include(s => s.Category);
 
             query = query.Where(s => s.Category.Name == categoryName);
             query = query.Where(s => s.SubCategoryId == subCategoryId);
@@ -145,7 +147,7 @@ namespace EStore.Api.Repository
         public async Task<Category> GetCategoryAsync(int categoryId)
         {
             IQueryable<Category> query = _appDbContext.Categories;
-            query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
+            query = query.Include(c => c.SubCategories).ThenInclude(s => s.Products);
             query = query.Where(c => c.CategoryId == categoryId);
             return await query.FirstOrDefaultAsync();
         }
@@ -156,6 +158,29 @@ namespace EStore.Api.Repository
             var oldCategory = categories.Where(c => c.CategoryId == newCategory.CategoryId).FirstOrDefault();
             oldCategory.Name = newCategory.Name;
             oldCategory.SubCategories = newCategory.SubCategories;
-        }        
+        }
+
+        public async Task<SubCategory> GetSubCategoryAsync(string subCategoryName)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories;
+            query = query.Include(s => s.Category).Include(s => s.Products);
+            query = query.Where(s => s.Name == subCategoryName);
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public void UpdateSubCategory(SubCategory newSubCategory)
+        {
+            IQueryable<SubCategory> query = _appDbContext.SubCategories;
+            query = query.Include(s => s.Category).Include(s => s.Category);
+            var oldSubCategory = query.Where(c => c.SubCategoryId == newSubCategory.SubCategoryId).FirstOrDefault();
+            oldSubCategory.Name = newSubCategory.Name;
+            oldSubCategory.Category = newSubCategory.Category;
+            oldSubCategory.Products = newSubCategory.Products;            
+        }
+
+        public void DeleteSubCategory(SubCategory subCategory)
+        {
+            _appDbContext.SubCategories.Remove(subCategory);
+        }
     }
 }

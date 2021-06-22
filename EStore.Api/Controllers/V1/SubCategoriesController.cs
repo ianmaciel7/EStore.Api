@@ -89,6 +89,65 @@ namespace EStore.Api.Controllers.V1
                     );
                 return Created(uri, result);
             }
+            catch (CategoryNameNotUniqueException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpPut("{subCategoryId:int}")]
+        public async Task<ActionResult> Put([FromRoute] string categoryName,
+                                            [FromRoute] int subCategoryId, 
+                                            [FromBody] SubCategoryInputModel model)
+        {
+            try
+            {
+                var result = await _categoryService.UpdateSubCategoryAsync(categoryName,subCategoryId, model);
+                return Ok(result);
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNameNotUniqueException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpDelete("{subCategoryId:int}")]
+        public async Task<ActionResult> Delete([FromRoute] string categoryName,
+                                               [FromRoute] int subCategoryId)
+        {
+            try
+            {
+                await _categoryService.DeleteSubCategoryAsync(categoryName, subCategoryId);
+                return Ok();
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (SubCategoriesContainsProductsException ex)
+            {
+                return Conflict(ex.Message);
+            }
             catch (Exception)
             {
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
