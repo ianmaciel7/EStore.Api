@@ -86,5 +86,50 @@ namespace EStore.Api.Controllers.V1
                 return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
             }
         }
+
+        [HttpPut("{categoryId:int}")]
+        public async Task<ActionResult> Put([FromRoute] int categoryId, [FromBody] CategoryInputModel model)
+        {
+            try
+            {
+                var result = await _categoryService.UpdateCategoryAsync(categoryId,model);
+                return Ok(result);
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (CategoryNameNotUniqueException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
+        [HttpDelete("{categoryId:int}")]
+        public async Task<ActionResult> Delete([FromRoute] int categoryId)
+        {
+            try
+            {
+                await _categoryService.DeleteCategoryAsync(categoryId);
+                return Ok();
+            }
+            catch (CategoryNotFoundException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (CategoryContainsSubcategoriesException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception)
+            {
+                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
+            }
+        }
+
     }
 }

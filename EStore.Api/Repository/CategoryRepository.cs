@@ -17,6 +17,11 @@ namespace EStore.Api.Repository
             _appDbContext = appDbContext;
         }
 
+        public void DeleteCategory(Category category)
+        {
+            _appDbContext.Categories.Remove(category);
+        }
+
         public async Task<Category> AddCategoryAsync(Category category)
         {
             var entityEntry = await _appDbContext.Categories.AddAsync(category);
@@ -144,6 +149,13 @@ namespace EStore.Api.Repository
             query = query.Where(c => c.CategoryId == categoryId);
             return await query.FirstOrDefaultAsync();
         }
-        
+
+        public void UpdateCategory(Category newCategory)
+        {
+            var categories = _appDbContext.Categories;
+            var oldCategory = categories.Where(c => c.CategoryId == newCategory.CategoryId).FirstOrDefault();
+            oldCategory.Name = newCategory.Name;
+            oldCategory.SubCategories = newCategory.SubCategories;
+        }        
     }
 }

@@ -38,6 +38,20 @@ namespace EStore.Api.Services
             };
         }
 
+        public async Task DeleteCategoryAsync(int categoryId)
+        {
+            var category = await _categoryRepository.GetCategoryAsync(categoryId);
+
+            if (!IsThereThisCategory(category))
+                throw new CategoryNotFoundException(categoryId);
+
+            if (!category.SubCategories.Any())
+                throw new CategoryContainsSubcategoriesException(categoryId);
+
+            _categoryRepository.DeleteCategory(category);
+            await _categoryRepository.SaveChangesAsync();
+        }
+
         public async Task<CategoryViewModel> AddCategoryAsync(CategoryInputModel model)
         {
             
@@ -58,6 +72,34 @@ namespace EStore.Api.Services
                 SubCategories = addedCategory.SubCategories               
             };
 
+        }
+
+        public async Task<CategoryViewModel> UpdateCategoryAsync(int categoryId, CategoryInputModel model)
+        {
+            var categoryOld = await _categoryRepository.GetCategoryAsync(categoryId);
+            
+            if (!IsThereThisCategory(categoryOld))
+                throw new CategoryNotFoundException(categoryId);
+
+            if (await IsThereThisCategoryAsync(model.Name))
+                throw new CategoryNameNotUniqueException(model.Name);
+
+            var category = new Category()
+            {
+                CategoryId = categoryOld.CategoryId,
+                SubCategories = categoryOld.SubCategories,
+                Name = model.Name
+            };
+
+            _categoryRepository.UpdateCategory(category);
+            await _categoryRepository.SaveChangesAsync();
+
+            return new CategoryViewModel
+            {
+                CategoryId = category.CategoryId,                
+                Name = category.Name,
+                SubCategories = category.SubCategories
+            };
         }
 
         public async Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync()
@@ -292,7 +334,6 @@ namespace EStore.Api.Services
         public void Dispose()
         {
             _categoryRepository?.Dispose();
-        }
-        
+        }        
     }
 }

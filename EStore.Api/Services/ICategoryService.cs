@@ -11,6 +11,7 @@ namespace EStore.Api.Services
 {
     public interface ICategoryService : IDisposable
     {
+        Task<CategoryViewModel> UpdateCategoryAsync(int categoryId, CategoryInputModel model);
         Task<CategoryViewModel> GetCategoryAsync(int CategoryId);
         Task<CategoryViewModel> AddCategoryAsync(CategoryInputModel model);
         Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync();
@@ -22,6 +23,6 @@ namespace EStore.Api.Services
         Task<ProductViewModel> GetProductAsync(string categoryName, string subCategoryName, int productId);       
         Task<ProductViewModel> UpdateProductAsync(string categoryName, string subCategoryName, int productId, ProductInputModel model);
         Task DeleteProductAsync(string categoryName, string subCategoryName, int productId);
-        
+        Task DeleteCategoryAsync(int categoryId);
     }
 }

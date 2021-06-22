@@ -25,6 +25,7 @@ namespace EStore.Api.Repository
         void DeleteProduct(Product product);
         void UpdateProduct(Product newProduct);
         Task SaveChangesAsync();
-        
+        void UpdateCategory(Category newCategory);
+        void DeleteCategory(Category category);
     }
 }
