@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31402.337
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EStore.Api", "EStore.Api\EStore.Api.csproj", "{EBE6E375-C853-424D-B1F3-993B6B358C34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EStore.Api", "EStore.Api\EStore.Api.csproj", "{EBE6E375-C853-424D-B1F3-993B6B358C34}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9EBC4EFD-F0CC-40CE-9E83-5D879437EC84}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{64C63818-6B20-49E1-B8FB-AC80919D95CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EStore.Api.Test", "EStore.Api.Test\EStore.Api.Test.csproj", "{A6C1A02B-94BE-420F-93A6-EEF5D5581B68}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +21,17 @@ Global
 		{EBE6E375-C853-424D-B1F3-993B6B358C34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBE6E375-C853-424D-B1F3-993B6B358C34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBE6E375-C853-424D-B1F3-993B6B358C34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6C1A02B-94BE-420F-93A6-EEF5D5581B68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6C1A02B-94BE-420F-93A6-EEF5D5581B68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6C1A02B-94BE-420F-93A6-EEF5D5581B68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6C1A02B-94BE-420F-93A6-EEF5D5581B68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EBE6E375-C853-424D-B1F3-993B6B358C34} = {9EBC4EFD-F0CC-40CE-9E83-5D879437EC84}
+		{A6C1A02B-94BE-420F-93A6-EEF5D5581B68} = {64C63818-6B20-49E1-B8FB-AC80919D95CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AC841944-5B9E-4E84-A5DB-CBF97229D3BF}
