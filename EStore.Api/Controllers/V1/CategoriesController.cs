@@ -79,7 +79,7 @@ namespace EStore.Api.Controllers.V1
             }
             catch (CategoryNameNotUniqueException ex)
             {
-                return BadRequest(ex.Message);
+                return Conflict(ex.Message);
             }            
             catch (Exception)
             {

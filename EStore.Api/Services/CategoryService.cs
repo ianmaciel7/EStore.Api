@@ -60,7 +60,7 @@ namespace EStore.Api.Services
                 Name = model.Name,               
             };
                       
-            if (await IsThereThisProductAsync(model.Name))
+            if (await IsThereThisCategoryAsync(model.Name))
                 throw new CategoryNameNotUniqueException(model.Name);
          
             var addedCategory = _categoryRepository.AddCategoryAsync(category).Result;

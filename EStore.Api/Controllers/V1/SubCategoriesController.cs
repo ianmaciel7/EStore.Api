@@ -89,7 +89,7 @@ namespace EStore.Api.Controllers.V1
                     );
                 return Created(uri, result);
             }
-            catch (CategoryNameNotUniqueException ex)
+            catch (SubCategoryNameNotUniqueException ex)
             {
                 return Conflict(ex.Message);
             }
